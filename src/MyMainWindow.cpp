@@ -8,6 +8,7 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QSurfaceFormat>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -35,9 +36,25 @@ QWidget* MyMainWindow::CreateCentralWidget() {
     auto toolLayout = new QHBoxLayout;
     auto label = new QLabel(VARIANT_DESCRIPTION);
 
+    auto scaleUpButton = new QPushButton;
+    scaleUpButton->setSizePolicy(fixedSizePolicy);
+    scaleUpButton->setIcon(QIcon(":/icons/scaleUpIcon"));
+    toolLayout->addWidget(scaleUpButton);
+
+    auto scaleDownButton = new QPushButton;
+    scaleDownButton->setSizePolicy(fixedSizePolicy);
+    scaleDownButton->setIcon(QIcon(":/icons/scaleDownIcon"));
+    toolLayout->addWidget(scaleDownButton);
+
+    connect(scaleUpButton, &QPushButton::pressed, OpenGLWidget,
+            &MyOpenGLWidget::ScaleUpSlot);
+    connect(scaleDownButton, &QPushButton::pressed, OpenGLWidget,
+            &MyOpenGLWidget::ScaleDownSlot);
+
     label->setSizePolicy(fixedSizePolicy);
     toolLayout->addWidget(label);
 
+    toolLayout->addStretch();
 
     mainLayout->addLayout(toolLayout);
     mainLayout->addWidget(OpenGLWidget);
