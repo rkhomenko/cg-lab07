@@ -16,7 +16,8 @@
 #include <QOpenGLVertexArrayObject>
 #include <QResizeEvent>
 
-MyOpenGLWidget::MyOpenGLWidget(QWidget* parent) : QOpenGLWidget(parent) {
+MyOpenGLWidget::MyOpenGLWidget(QWidget* parent)
+    : QOpenGLWidget(parent), ScaleFactor{1.0f} {
     setMinimumSize(WIDGET_DEFAULT_SIZE);
 }
 
@@ -37,7 +38,7 @@ void MyOpenGLWidget::ScaleDownSlot() {
 void MyOpenGLWidget::initializeGL() {
     initializeOpenGLFunctions();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this,
             &MyOpenGLWidget::CleanUp);
@@ -57,11 +58,19 @@ void MyOpenGLWidget::initializeGL() {
     Buffer->create();
     Buffer->bind();
     Buffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
-    UpdateOnChange(width(), height());
+
+    const float data[] = {-0.95, 0.95, -0.95, -0.95, 0.95, -0.95};
+    Buffer->allocate(data, sizeof(float) * 6);
 
     VertexArray = new QOpenGLVertexArrayObject;
     VertexArray->create();
     VertexArray->bind();
+
+    int posAttr = ShaderProgram->attributeLocation(POSITION);
+    ShaderProgram->enableAttributeArray(posAttr);
+    ShaderProgram->setAttributeBuffer(posAttr, GL_FLOAT, 0, 2, 0);
+
+    UpdateOnChange(width(), height());
 
     VertexArray->release();
     Buffer->release();
@@ -77,9 +86,14 @@ void MyOpenGLWidget::paintGL() {
         QApplication::quit();
     }
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    glShadeModel(GL_SMOOTH);
+    glClear(GL_COLOR_BUFFER_BIT);
 
+    Buffer->bind();
+    VertexArray->bind();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    Buffer->release();
+    VertexArray->release();
     ShaderProgram->release();
 }
 
@@ -92,7 +106,11 @@ void MyOpenGLWidget::CleanUp() {
 }
 
 void MyOpenGLWidget::UpdateOnChange(int width, int height) {
-    const Mat4x4 scaleMatrix = GenerateScaleMatrix(width, height);
+    Mat4x4 scaleMatrix = GenerateScaleMatrix(width, height);
+    ShaderProgram->bind();
+    ShaderProgram->setUniformValue(TRANSFORM_MATRIX,
+                                   QMatrix4x4(scaleMatrix.data()));
+    ShaderProgram->release();
 }
 
 void MyOpenGLWidget::OnWidgetUpdate() {

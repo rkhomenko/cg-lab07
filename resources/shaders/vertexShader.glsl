@@ -5,16 +5,10 @@
 
 #version 330
 
-attribute highp vec4 position;
-attribute highp vec4 color;
+attribute highp vec2 position;
 
 uniform highp mat4x4 transformMatrix;
 
-varying highp vec4 normal;
-varying highp vec4 point;
-
 void main() {
-    point = position;
-    normal = color;
-    gl_Position = position * transformMatrix;
+    gl_Position = vec4(position.xy, 0, 1) * transformMatrix;
 }
