@@ -5,8 +5,11 @@
 
 #include <MyMainWindow.hpp>
 #include <MyOpenGLWidget.hpp>
+#include <NURBS.hpp>
 
+#include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #include <QApplication>
 #include <QDebug>
@@ -16,8 +19,13 @@
 #include <QOpenGLVertexArrayObject>
 #include <QResizeEvent>
 
-MyOpenGLWidget::MyOpenGLWidget(QWidget* parent)
-    : QOpenGLWidget(parent), ScaleFactor{1.0f} {
+MyOpenGLWidget::MyOpenGLWidget(std::vector<Point>& p, QWidget* parent)
+    : QOpenGLWidget(parent),
+      ScaleFactor{1.0f},
+      P{p},
+      Step{100},
+      NeedRegeneratePoints{true},
+      CurrentScale{0.0f} {
     setMinimumSize(WIDGET_DEFAULT_SIZE);
 }
 
@@ -25,6 +33,8 @@ MyOpenGLWidget::~MyOpenGLWidget() {}
 
 void MyOpenGLWidget::ScaleUpSlot() {
     ScaleFactor *= SCALE_FACTOR_PER_ONCE;
+    Step = static_cast<int>(Step * 1.5f);
+    NeedRegeneratePoints = true;
     UpdateOnChange(width(), height());
     OnWidgetUpdate();
 }
@@ -43,6 +53,11 @@ void MyOpenGLWidget::initializeGL() {
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this,
             &MyOpenGLWidget::CleanUp);
 
+    if (!context()->hasExtension("GL_ARB_arrays_of_arrays")) {
+        qDebug() << "GL_ARB_arrays_of_arrays is not supported!";
+        QApplication::quit();
+    }
+
     ShaderProgram = new QOpenGLShaderProgram(this);
     ShaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex,
                                            VERTEX_SHADER);
@@ -59,8 +74,9 @@ void MyOpenGLWidget::initializeGL() {
     Buffer->bind();
     Buffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
 
-    const float data[] = {-0.95, 0.95, -0.95, -0.95, 0.95, -0.95};
-    Buffer->allocate(data, sizeof(float) * 6);
+    UpdateOnChange(width(), height());
+
+    Buffer->allocate(Points.data(), sizeof(Point) * Points.size());
 
     VertexArray = new QOpenGLVertexArrayObject;
     VertexArray->create();
@@ -68,9 +84,11 @@ void MyOpenGLWidget::initializeGL() {
 
     int posAttr = ShaderProgram->attributeLocation(POSITION);
     ShaderProgram->enableAttributeArray(posAttr);
-    ShaderProgram->setAttributeBuffer(posAttr, GL_FLOAT, 0, 2, 0);
+    ShaderProgram->setAttributeBuffer(posAttr, GL_FLOAT, Point::GetOffset(),
+                                      Point::GetTupleSize(),
+                                      Point::GetStride());
 
-    UpdateOnChange(width(), height());
+    ShaderProgram->disableAttributeArray(posAttr);
 
     VertexArray->release();
     Buffer->release();
@@ -86,11 +104,34 @@ void MyOpenGLWidget::paintGL() {
         QApplication::quit();
     }
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Buffer->bind();
+    Buffer->destroy();
+    if (!Buffer->create()) {
+        qDebug() << "Cannot create buffer";
+    }
+
+    if (!Buffer->bind()) {
+        qDebug() << "Cannot bind buffer";
+    }
+
+    Buffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    Buffer->allocate(Points.data(), sizeof(Point) * Points.size());
+
+    VertexArray->destroy();
+    VertexArray->create();
     VertexArray->bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    int posAttr = ShaderProgram->attributeLocation(POSITION);
+    ShaderProgram->enableAttributeArray(posAttr);
+    ShaderProgram->setAttributeBuffer(posAttr, GL_FLOAT, Point::GetOffset(),
+                                      Point::GetTupleSize(),
+                                      Point::GetStride());
+
+    glEnable(GL_POINT_SMOOTH);
+    glDrawArrays(GL_LINE_STRIP, 0, Points.size());
+
+    ShaderProgram->disableAttributeArray(posAttr);
 
     Buffer->release();
     VertexArray->release();
@@ -111,6 +152,29 @@ void MyOpenGLWidget::UpdateOnChange(int width, int height) {
     ShaderProgram->setUniformValue(TRANSFORM_MATRIX,
                                    QMatrix4x4(scaleMatrix.data()));
     ShaderProgram->release();
+
+    if (NeedRegeneratePoints && CurrentScale < ScaleFactor) {
+        CurrentScale = ScaleFactor;
+        std::vector<float> t(Step + 1);
+        for (auto i = 0; i <= Step; i++) {
+            t[i] = i * 1.0f / Step;
+        }
+
+        Points.clear();
+        NURBS nurbs(5, 4, P);
+        for (auto t_i : t) {
+            auto r = nurbs.R(t_i);
+            Points.push_back(r);
+        }
+
+        Points.erase(std::unique(std::begin(Points), std::end(Points)),
+                     std::end(Points));
+        Points.erase(
+            std::remove(std::begin(Points), std::end(Points), Point(0, 0, 0)),
+            std::end(Points));
+
+        NeedRegeneratePoints = false;
+    }
 }
 
 void MyOpenGLWidget::OnWidgetUpdate() {

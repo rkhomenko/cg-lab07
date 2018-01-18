@@ -16,12 +16,9 @@ set(HEADER_SUFFIX "hpp")
 set(SOURCE_SUFFIX "cpp")
 set(INCLUDE_DIR "include")
 set(SOURCE_DIR "src")
-set(UI_FILE "ui/MyControlWidget.ui")
 set(RESOURCES_FILE "resources/resources.qrc")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${UI_DIR})
-
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5Widgets REQUIRED)
@@ -41,14 +38,8 @@ if(EIGEN3_INCLUDE_DIR)
     include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 
-# Adding thread library
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads)
-
 add_executable(${PROJECT_NAME} ${INCLUDES} ${UI_INCLUDES}
                                ${SOURCES}
                                ${RESOURCES})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-target_link_libraries(${PROJECT_NAME} Qt5::Widgets
-                                      Threads::Threads
-                                      ${OPENGL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

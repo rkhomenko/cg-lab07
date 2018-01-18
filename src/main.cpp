@@ -10,7 +10,7 @@
 void Init() {
     Q_INIT_RESOURCE(resources);
 
-    QCoreApplication::setApplicationName("CG Lab06 by Roman Khomenko (8O-308)");
+    QCoreApplication::setApplicationName("CG Lab07 by Roman Khomenko (8O-308)");
     QCoreApplication::setOrganizationName("Khomenko and Co");
     QCoreApplication::setApplicationVersion("0.1.0");
 }

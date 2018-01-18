@@ -6,6 +6,9 @@
 #ifndef CG_LAB_MYOPENGLWIDGET_HPP_
 #define CG_LAB_MYOPENGLWIDGET_HPP_
 
+#include <Point.hpp>
+#include <vector>
+
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 
@@ -33,7 +36,7 @@ class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 public:
     using FloatType = float;
 
-    explicit MyOpenGLWidget(QWidget* parent = nullptr);
+    explicit MyOpenGLWidget(std::vector<Point>& p, QWidget* parent = nullptr);
     ~MyOpenGLWidget();
 
 public slots:
@@ -60,7 +63,6 @@ private:
 
     static constexpr auto SCALE_FACTOR_PER_ONCE = 1.15f;
 
-
     void UpdateOnChange(int width, int height);
     void OnWidgetUpdate();
 
@@ -70,6 +72,11 @@ private:
     QOpenGLBuffer* Buffer;
     QOpenGLVertexArrayObject* VertexArray;
     FloatType ScaleFactor;
+    std::vector<Point> P;
+    std::vector<Point> Points;
+    int Step;
+    bool NeedRegeneratePoints;
+    float CurrentScale;
 };
 
 #endif  // CG_LAB_MYOPENGLWIDGET_HPP_

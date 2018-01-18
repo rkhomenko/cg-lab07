@@ -21,7 +21,13 @@ MyMainWindow::MyMainWindow(QWidget* parent) : QMainWindow(parent) {
     format.setVersion(3, 3);
     format.setProfile(QSurfaceFormat::CoreProfile);
 
-    OpenGLWidget = new MyOpenGLWidget;
+    std::vector<Point> points = {
+        Point(-0.5, 0, 0.25), Point(-0.5, 0.5, 0.3),
+        Point(0, 0, 0.8), Point(0, 0.5, 0.1),
+        Point(0.5, 0, 0.5), Point(0.5, 0.5, 0.2)
+    };
+
+    OpenGLWidget = new MyOpenGLWidget(points);
     OpenGLWidget->setFormat(format);
 
     setCentralWidget(CreateCentralWidget());
