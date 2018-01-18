@@ -10,7 +10,6 @@
 #include <QApplication>
 #include <QByteArray>
 #include <QCommandLineParser>
-#include <QDebug>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>

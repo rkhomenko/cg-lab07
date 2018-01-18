@@ -8,9 +8,7 @@
 
 #include <Point.hpp>
 
-#include <numeric>
 #include <vector>
-#include <iostream>
 
 class NURBS {
 public:
