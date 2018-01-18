@@ -36,7 +36,7 @@ class MyOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions {
 public:
     using FloatType = float;
 
-    explicit MyOpenGLWidget(std::vector<Point>& p, QWidget* parent = nullptr);
+    explicit MyOpenGLWidget(const std::vector<Point>& p, QWidget* parent = nullptr);
     ~MyOpenGLWidget();
 
 public slots:

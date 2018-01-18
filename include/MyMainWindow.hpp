@@ -6,9 +6,8 @@
 #ifndef CG_LAB_MYMAINWINDOW_HPP_
 #define CG_LAB_MYMAINWINDOW_HPP_
 
+#include <Point.hpp>
 #include <QMainWindow>
-
-#include <array>
 
 class MyOpenGLWidget;
 
@@ -16,8 +15,8 @@ class MyMainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MyMainWindow(QWidget* parent = nullptr);
-    ~MyMainWindow() = default;
+    explicit MyMainWindow(const std::vector<Point>& points,
+                          QWidget* parent = nullptr);
 
     static constexpr auto VARIANT_DESCRIPTION =
         "Computer grapics lab 7\n"

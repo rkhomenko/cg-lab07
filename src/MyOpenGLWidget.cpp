@@ -19,9 +19,9 @@
 #include <QOpenGLVertexArrayObject>
 #include <QResizeEvent>
 
-MyOpenGLWidget::MyOpenGLWidget(std::vector<Point>& p, QWidget* parent)
+MyOpenGLWidget::MyOpenGLWidget(const std::vector<Point>& p, QWidget* parent)
     : QOpenGLWidget(parent),
-      ScaleFactor{1.0f},
+      ScaleFactor{2.0f},
       P{p},
       Step{100},
       NeedRegeneratePoints{true},

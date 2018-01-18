@@ -13,19 +13,14 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-MyMainWindow::MyMainWindow(QWidget* parent) : QMainWindow(parent) {
+MyMainWindow::MyMainWindow(const std::vector<Point>& points, QWidget* parent)
+    : QMainWindow(parent) {
     QSurfaceFormat format;
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setVersion(3, 3);
     format.setProfile(QSurfaceFormat::CoreProfile);
-
-    std::vector<Point> points = {
-        Point(-0.5, 0, 0.25), Point(-0.5, 0.5, 0.3),
-        Point(0, 0, 0.8), Point(0, 0.5, 0.1),
-        Point(0.5, 0, 0.5), Point(0.5, 0.5, 0.2)
-    };
 
     OpenGLWidget = new MyOpenGLWidget(points);
     OpenGLWidget->setFormat(format);
